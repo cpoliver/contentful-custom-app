@@ -3,7 +3,7 @@
     <header class="blog header">
       <div class="foreground">
         <div class="page-bar wrapper">
-          <a href="/" class="person-name">John Doe</a>
+          <a href="/" class="person-name">{{ person.fields.name }}</a>
           <Navigation></Navigation>
         </div>
         <div class="page-info wrapper">
@@ -35,14 +35,20 @@ const client = createClient()
 
 export default {
   asyncData ({ env, params }) {
-    return client.getEntries({
-      'content_type': env.CTF_BLOG_POST_TYPE_ID,
-      order: '-sys.createdAt'
-    }).then(entries => {
+    return Promise.all([
+      client.getEntries({
+        'sys.id': env.CTF_PERSON_ID
+      }),
+      client.getEntries({
+        'content_type': env.CTF_BLOG_POST_TYPE_ID,
+        order: '-sys.createdAt'
+      })
+    ]).then(([entries, posts]) => {
       return {
-        posts: entries.items
+        person: entries.items[0],
+        posts: posts.items
       }
-    })
+    }).catch(console.error)
   },
   components: {
     ArticlePreview,
